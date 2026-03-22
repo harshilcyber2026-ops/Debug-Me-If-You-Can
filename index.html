@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Debug Me If You Can — FlagVault CTF</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;600;800;900&family=Exo+2:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════════
+   FLAGVAULT CTF — SHARED STYLESHEET (fully inlined)
+═══════════════════════════════════════════════ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#03080c;--surface:#070f18;--surface2:#0c1a28;
+  --border:#164060;--border2:#164060;
+  --accent:#00e8c8;--accent2:#ff2d6b;--accent3:#f5a623;
+  --accent4:#7c3aed;--accent5:#3498db;--accent6:#ff003c;
+  --text:#b8cdd9;--text-dim:#3d6070;--text-hi:#e8f4f8;
+  --glow-c:rgba(0,232,200,0.35);--glow-r:rgba(255,45,107,0.35);
+  --font-mono:'Share Tech Mono',monospace;
+  --font-hud:'Orbitron',sans-serif;
+  --font-body:'Exo 2',sans-serif;
+  --radius:2px;--transition:0.22s cubic-bezier(0.4,0,0.2,1);
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-size:15px;line-height:1.65;min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;z-index:9999;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,0.06) 3px,rgba(0,0,0,0.06) 4px);pointer-events:none}
+body::after{content:'';position:fixed;inset:0;z-index:0;background-image:linear-gradient(rgba(0,232,200,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,232,200,0.03) 1px,transparent 1px);background-size:40px 40px;pointer-events:none}
+h1,h2,h3{font-family:var(--font-hud);letter-spacing:1px;color:var(--text-hi)}
+p{font-family:var(--font-body);font-weight:300}
+a{color:var(--accent);text-decoration:none;transition:color var(--transition)}
+a:hover{color:var(--text-hi)}
+code,.mono{font-family:var(--font-mono);background:rgba(0,232,200,0.06);border:1px solid var(--border);padding:2px 6px;font-size:.88em;color:var(--accent)}
+
+/* NAV */
+.nav{position:sticky;top:0;z-index:500;background:rgba(3,8,12,.96);border-bottom:1px solid var(--border);backdrop-filter:blur(14px);padding:0 2rem;height:58px;display:flex;align-items:center;justify-content:space-between}
+.nav-brand{font-family:var(--font-hud);font-size:1rem;font-weight:800;color:var(--text-hi);letter-spacing:3px;text-decoration:none;display:flex;align-items:center;gap:.6rem}
+.nav-brand .bracket{color:var(--accent)}.nav-brand .brand-flag{color:var(--accent2)}
+.nav-links{display:flex;align-items:center;gap:.25rem;list-style:none;flex-wrap:wrap}
+.nav-links a{color:var(--text-dim);font-family:var(--font-mono);font-size:.72rem;letter-spacing:1.5px;text-transform:uppercase;padding:.4rem .8rem;border:1px solid transparent;border-radius:var(--radius);transition:all var(--transition)}
+.nav-links a:hover,.nav-links a.active{color:var(--accent);border-color:var(--border2);background:rgba(0,232,200,.05)}
+.nav-links a.active::before{content:'> '}
+.nav-status{display:flex;align-items:center;gap:.5rem;font-family:var(--font-mono);font-size:.68rem;color:var(--text-dim)}
+.status-dot{width:7px;height:7px;border-radius:50%;background:var(--accent);box-shadow:0 0 8px var(--accent);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* PAGE */
+.page-wrap{position:relative;z-index:1;max-width:1260px;margin:0 auto;padding:3rem 2rem 6rem}
+.page-header{margin-bottom:3rem;border-left:3px solid var(--accent);padding-left:1.5rem;position:relative}
+.page-header::before{content:attr(data-index);position:absolute;right:0;top:0;font-family:var(--font-hud);font-size:5rem;font-weight:900;color:rgba(0,232,200,.04);line-height:1;pointer-events:none}
+.page-eyebrow{font-family:var(--font-mono);font-size:.68rem;letter-spacing:4px;color:var(--accent);text-transform:uppercase;margin-bottom:.5rem}
+.page-title{font-size:clamp(1.8rem,4vw,3rem);font-weight:900;color:var(--text-hi);line-height:1.1;margin-bottom:.8rem}
+.page-title .hl{color:var(--accent)}.page-title .hl2{color:var(--accent2)}
+.page-desc{font-size:.88rem;color:var(--text-dim);max-width:580px;font-family:var(--font-mono)}
+
+/* DIVIDER */
+.sec-divider{display:flex;align-items:center;gap:1rem;margin:2.5rem 0 1.8rem}
+.sec-divider h3{font-size:.7rem;letter-spacing:3px;color:var(--text-dim);text-transform:uppercase;white-space:nowrap}
+.sec-divider::after{content:'';flex:1;height:1px;background:linear-gradient(to right,var(--border2),transparent)}
+.sec-divider::before{content:'//';font-family:var(--font-mono);color:var(--accent);font-size:.8rem}
+
+/* TAGS */
+.tag{display:inline-block;font-family:var(--font-mono);font-size:.62rem;letter-spacing:1.5px;text-transform:uppercase;padding:2px 8px;border-radius:20px;border:1px solid}
+.tag-green{color:var(--accent);border-color:rgba(0,232,200,.3);background:rgba(0,232,200,.07)}
+.tag-red{color:var(--accent2);border-color:rgba(255,45,107,.3);background:rgba(255,45,107,.07)}
+.tag-amber{color:var(--accent3);border-color:rgba(245,166,35,.3);background:rgba(245,166,35,.07)}
+.tag-purple{color:#a78bfa;border-color:rgba(124,58,237,.3);background:rgba(124,58,237,.07)}
+
+/* HINTS */
+.hints-container{margin-bottom:1.5rem;display:flex;flex-direction:column;gap:.6rem}
+.hint-item{border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.hint-toggle{width:100%;text-align:left;background:var(--surface2);border:none;cursor:pointer;padding:.6rem 1rem;display:flex;align-items:center;gap:.6rem;font-family:var(--font-mono);font-size:.72rem;color:var(--text-dim);transition:background var(--transition),color var(--transition)}
+.hint-toggle:hover{background:rgba(245,166,35,.08);color:var(--accent3)}
+.hint-toggle .hint-num{background:rgba(245,166,35,.12);color:var(--accent3);border:1px solid rgba(245,166,35,.3);padding:1px 6px;font-size:.6rem;letter-spacing:1px}
+.hint-cost{margin-left:auto;color:var(--accent2);font-size:.65rem}
+.hint-content{display:none;padding:.8rem 1rem;font-family:var(--font-mono);font-size:.78rem;color:var(--accent3);background:rgba(245,166,35,.04);border-top:1px solid rgba(245,166,35,.15);line-height:1.8}
+.hint-item.revealed .hint-content{display:block;animation:slideDown .2s ease}
+.hint-item.revealed .hint-toggle{color:var(--accent3)}
+
+/* FLAG FORMAT */
+.flag-format{background:var(--surface2);border:1px solid var(--border);border-left:3px solid var(--accent2);padding:.9rem 1.2rem;font-family:var(--font-mono);font-size:.82rem;color:var(--text-dim);margin-bottom:1.5rem;display:flex;align-items:center;gap:.8rem}
+.flag-format strong{color:var(--accent2)}
+
+/* SUBMIT */
+.submit-section{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:2rem;margin-top:3rem;position:relative;overflow:hidden}
+.submit-section::before{content:'SUBMIT FLAG';position:absolute;right:1.5rem;top:1.5rem;font-family:var(--font-hud);font-size:3.5rem;font-weight:900;color:rgba(0,232,200,.03);pointer-events:none;line-height:1}
+.submit-title{font-family:var(--font-hud);font-size:1rem;color:var(--text-hi);margin-bottom:.4rem;display:flex;align-items:center;gap:.6rem}
+.submit-title::before{content:'⚑';color:var(--accent2)}
+.submit-sub{font-family:var(--font-mono);font-size:.72rem;color:var(--text-dim);margin-bottom:1.5rem}
+.form-control{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:.7rem 1rem;font-family:var(--font-mono);font-size:.85rem;color:var(--text-hi);outline:none;transition:border-color var(--transition),box-shadow var(--transition);width:100%;appearance:none}
+.form-control::placeholder{color:var(--text-dim);font-size:.78rem}
+.form-control:focus{border-color:var(--accent);box-shadow:0 0 0 2px rgba(0,232,200,.12),0 0 12px rgba(0,232,200,.08)}
+.flag-input-wrap{position:relative;margin-bottom:1.2rem}
+.flag-input-wrap .prefix{position:absolute;left:1rem;top:50%;transform:translateY(-50%);font-family:var(--font-mono);font-size:.78rem;color:var(--accent2);pointer-events:none;white-space:nowrap}
+.flag-input-wrap .form-control{padding-left:7.8rem;letter-spacing:1px}
+.btn{font-family:var(--font-hud);font-size:.72rem;letter-spacing:3px;text-transform:uppercase;padding:.8rem 2rem;border:none;border-radius:var(--radius);cursor:pointer;transition:all var(--transition);position:relative;overflow:hidden}
+.btn::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.06),transparent);transform:translateX(-100%);transition:transform .5s}
+.btn:hover::after{transform:translateX(100%)}
+.btn-primary{background:var(--accent);color:var(--bg);font-weight:600}
+.btn-primary:hover{background:#00fff0;box-shadow:0 0 20px var(--glow-c);transform:translateY(-1px)}
+.btn-danger{background:transparent;color:var(--accent2);border:1px solid var(--accent2)}
+.btn-danger:hover{background:rgba(255,45,107,.1);box-shadow:0 0 12px var(--glow-r)}
+.submit-result{margin-top:1rem;padding:.75rem 1rem;border-radius:var(--radius);font-family:var(--font-mono);font-size:.8rem;display:none}
+.submit-result.correct{display:block;background:rgba(0,232,200,.08);border:1px solid rgba(0,232,200,.3);color:var(--accent)}
+.submit-result.incorrect{display:block;background:rgba(255,45,107,.08);border:1px solid rgba(255,45,107,.3);color:var(--accent2)}
+
+/* TOOL CARDS */
+.tool-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.2rem;transition:all var(--transition);position:relative;overflow:hidden}
+.tool-card::before{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:var(--tool-color,var(--accent));transform:scaleX(0);transition:transform var(--transition)}
+.tool-card:hover{border-color:var(--border2);background:var(--surface2)}
+.tool-card:hover::before{transform:scaleX(1)}
+.tool-icon{font-size:1.4rem;margin-bottom:.6rem;display:block}
+.tool-name{font-family:var(--font-hud);font-size:.8rem;font-weight:600;color:var(--text-hi);margin-bottom:.3rem}
+.tool-tag{font-family:var(--font-mono);font-size:.62rem;letter-spacing:2px;color:var(--tool-color,var(--accent));text-transform:uppercase;margin-bottom:.5rem;display:block}
+.tool-desc{font-size:.75rem;color:var(--text-dim);font-family:var(--font-mono);line-height:1.6}
+
+/* FOOTER */
+.footer{position:relative;z-index:1;border-top:1px solid var(--border);padding:2rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem}
+.footer-brand{font-family:var(--font-hud);font-size:.75rem;color:var(--text-dim);letter-spacing:2px}
+.footer-brand span{color:var(--accent)}
+.footer-copy{font-family:var(--font-mono);font-size:.65rem;color:var(--text-dim)}
+
+/* ANIMATIONS */
+@keyframes slideDown{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
+.shake{animation:shake .4s ease}
+
+/* RESPONSIVE */
+@media(max-width:768px){.nav{padding:0 1rem}.nav-links{display:none}.page-wrap{padding:2rem 1rem 4rem}}
+@media(max-width:900px){.ch-layout{grid-template-columns:1fr !important}}
+@media(max-width:600px){.flag-submit-row{flex-direction:column}}
+
+/* ═══ CHALLENGE PAGE EXTRAS ═══ */
+.ch-layout{display:grid;grid-template-columns:1fr 340px;gap:2rem;align-items:start}
+.sidebar{display:flex;flex-direction:column;gap:1.25rem}
+.side-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.4rem}
+.side-card-title{font-family:var(--font-mono);font-size:.62rem;letter-spacing:3px;color:var(--text-dim);text-transform:uppercase;margin-bottom:1rem;padding-bottom:.6rem;border-bottom:1px solid var(--border)}
+.meta-row{display:flex;justify-content:space-between;align-items:center;padding:.45rem 0;border-bottom:1px solid rgba(22,64,96,.4);font-family:var(--font-mono);font-size:.76rem}
+.meta-row:last-child{border-bottom:none}
+.meta-key{color:var(--text-dim)}.meta-val{color:var(--text-hi)}
+.meta-val.green{color:var(--accent)}.meta-val.amber{color:var(--accent3)}.meta-val.red{color:var(--accent2)}
+.dl-btn{display:flex;align-items:center;gap:.75rem;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:1rem 1.2rem;text-decoration:none;transition:all var(--transition);cursor:pointer;color:inherit;margin-bottom:.75rem}
+.dl-btn:hover{border-color:var(--accent);background:rgba(0,232,200,.06);transform:translateX(3px);color:inherit}
+.dl-icon{font-size:1.5rem;flex-shrink:0}
+.dl-name{font-family:var(--font-mono);font-size:.82rem;color:var(--accent);display:block;margin-bottom:.15rem}
+.dl-size{font-family:var(--font-mono);font-size:.62rem;color:var(--text-dim)}
+.dl-arrow{margin-left:auto;color:var(--text-dim);font-size:.9rem;transition:transform var(--transition)}
+.dl-btn:hover .dl-arrow{transform:translateX(4px);color:var(--accent)}
+.desc-block{background:var(--surface2);border-left:3px solid var(--accent4);padding:1.2rem 1.4rem;font-family:var(--font-mono);font-size:.83rem;color:var(--text);line-height:1.85;margin-bottom:1.5rem;border-radius:0 var(--radius) var(--radius) 0}
+.desc-block p+p{margin-top:.75rem}
+.desc-block .hl{color:var(--accent)}.desc-block .hl2{color:var(--accent2)}.desc-block .hl3{color:var(--accent3)}
+.solve-bar-wrap{margin-top:.6rem}
+.solve-bar-label{display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:.65rem;color:var(--text-dim);margin-bottom:.35rem}
+.solve-bar{height:4px;background:var(--border);border-radius:2px;overflow:hidden}
+.solve-bar-fill{height:100%;background:var(--accent);border-radius:2px;width:0%;transition:width 1.2s cubic-bezier(.4,0,.2,1)}
+.flag-submit-row{display:flex;gap:.75rem;align-items:flex-end;margin-top:0}
+.flag-submit-row .flag-input-wrap{flex:1;margin-bottom:0}
+.solved-banner{display:none;align-items:center;gap:1rem;background:rgba(0,232,200,.07);border:1px solid rgba(0,232,200,.3);border-radius:var(--radius);padding:1rem 1.4rem;margin-top:1rem;font-family:var(--font-mono);font-size:.82rem;color:var(--accent)}
+.solved-banner.show{display:flex;animation:fadeUp .4s ease}
+.solved-banner .sb-icon{font-size:1.4rem;flex-shrink:0}
+.solved-banner .sb-pts{margin-left:auto;font-family:var(--font-hud);font-size:1.1rem;font-weight:800;color:var(--accent3)}
+
+/* Terminal */
+.terminal-emu{background:#010810;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:1.5rem}
+.emu-bar{background:var(--surface2);padding:.5rem 1rem;display:flex;align-items:center;gap:.6rem;border-bottom:1px solid var(--border)}
+.emu-dot{width:10px;height:10px;border-radius:50%}
+.emu-title{font-family:var(--font-mono);font-size:.65rem;color:var(--text-dim);margin:0 auto;letter-spacing:1px}
+.emu-body{padding:1rem 1.2rem;font-family:var(--font-mono);font-size:.78rem;line-height:1.9;color:#4a7a55}
+.epass{color:var(--accent)}.efail{color:var(--accent2)}.eprompt{color:var(--accent3)}.ecmt{color:var(--text-dim)}
+
+/* ASM block */
+.asm-block{background:#010810;border:1px solid var(--border);border-radius:var(--radius);padding:1.2rem 1.4rem;font-family:var(--font-mono);font-size:.76rem;line-height:2;overflow-x:auto;margin-bottom:1.5rem;position:relative}
+.aa{color:var(--text-dim);user-select:none;margin-right:.8rem}
+.am{color:#7dd3fc}.ao{color:var(--accent3)}.ac{color:var(--text-dim);font-style:italic}.ah{color:var(--accent2);font-weight:bold}
+.code-label{position:absolute;top:.6rem;right:.8rem;font-family:var(--font-mono);font-size:.58rem;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;background:var(--surface2);padding:2px 8px;border:1px solid var(--border);border-radius:20px}
+
+/* Arch cards */
+.arch-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:1.5rem}
+@media(max-width:640px){.arch-grid{grid-template-columns:1fr}}
+.arch-card{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:1rem 1.1rem;position:relative;overflow:hidden;transition:all var(--transition)}
+.arch-card::after{content:'';position:absolute;bottom:0;left:0;right:0;height:3px;background:var(--ac,var(--accent));transform:scaleX(0);transition:transform var(--transition)}
+.arch-card:hover::after{transform:scaleX(1)}
+.arch-card:hover{border-color:var(--ac,var(--accent));background:rgba(0,0,0,.25)}
+.arch-num{font-family:var(--font-hud);font-size:2rem;font-weight:900;color:var(--ac,var(--accent));opacity:.2;line-height:1;margin-bottom:.2rem}
+.arch-label{font-family:var(--font-mono);font-size:.58rem;letter-spacing:2px;color:var(--ac,var(--accent));text-transform:uppercase;margin-bottom:.3rem}
+.arch-title{font-family:var(--font-hud);font-size:.82rem;font-weight:700;color:var(--text-hi);margin-bottom:.4rem}
+.arch-desc{font-family:var(--font-mono);font-size:.68rem;color:var(--text-dim);line-height:1.65}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <a class="nav-brand" href="#">
+    <span class="bracket">[</span><span class="brand-flag">⚑</span>FLAG<span style="color:var(--accent)">VAULT</span><span class="bracket">]</span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="#">Home</a></li>
+    <li><a href="#" class="active">Challenges</a></li>
+    <li><a href="#">Scoreboard</a></li>
+    <li><a href="#">Tools</a></li>
+    <li><a href="#">Rules</a></li>
+  </ul>
+  <div class="nav-status"><span class="status-dot"></span><span>CTF LIVE</span></div>
+</nav>
+
+<div class="page-wrap">
+
+  <!-- Breadcrumb -->
+  <div style="font-family:var(--font-mono);font-size:.65rem;color:var(--text-dim);margin-bottom:2rem;display:flex;align-items:center;gap:.5rem">
+    <a href="#" style="color:var(--text-dim)">challenges</a><span>/</span>
+    <a href="#" style="color:var(--text-dim)">reverse-engineering</a><span>/</span>
+    <span style="color:var(--accent)">debug-me-if-you-can</span>
+  </div>
+
+  <!-- Header -->
+  <div class="page-header" data-index="RE">
+    <div class="page-eyebrow">⚙ Reverse Engineering · Challenge #07</div>
+    <h1 class="page-title">Debug Me If <span class="hl2">You Can</span></h1>
+    <p class="page-desc">A Linux binary with three anti-debugging layers: ptrace detection, rdtsc timing checks, and CRC32 code integrity. Bypass all three to reveal the flag.</p>
+  </div>
+
+  <div class="ch-layout">
+
+    <!-- MAIN -->
+    <div>
+
+      <div class="sec-divider"><h3>Description</h3></div>
+      <div class="desc-block">
+        <p>You've been handed a suspicious ELF binary. It claims to hold a flag, but it <span class="hl">actively fights back</span> against anyone trying to analyze it.</p>
+        <p>The binary implements <span class="hl2">three independent anti-debug layers</span>. All three must pass simultaneously for the flag to be revealed. A single failure — any running debugger, any timing anomaly, any patched byte — and you get nothing.</p>
+        <p><span class="hl3">Your goal: understand each protection mechanism and neutralize it without triggering the others.</span></p>
+      </div>
+
+      <div class="sec-divider"><h3>Protection Layers</h3></div>
+      <div class="arch-grid">
+        <div class="arch-card" style="--ac:var(--accent2)">
+          <div class="arch-num">01</div>
+          <div class="arch-label">Layer One</div>
+          <div class="arch-title">ptrace Detection</div>
+          <div class="arch-desc">Calls <code style="background:transparent;border:none;color:var(--accent2)">PTRACE_TRACEME</code> on itself. If a debugger is attached, this fails with <code style="background:transparent;border:none;color:var(--accent2)">EPERM (-1)</code>.</div>
+        </div>
+        <div class="arch-card" style="--ac:var(--accent3)">
+          <div class="arch-num">02</div>
+          <div class="arch-label">Layer Two</div>
+          <div class="arch-title">Timing Check</div>
+          <div class="arch-desc">Uses <code style="background:transparent;border:none;color:var(--accent3)">RDTSC</code> to measure a tight loop. Under a debugger, the delta vastly exceeds the 500k cycle threshold.</div>
+        </div>
+        <div class="arch-card" style="--ac:var(--accent)">
+          <div class="arch-num">03</div>
+          <div class="arch-label">Layer Three</div>
+          <div class="arch-title">CRC32 Integrity</div>
+          <div class="arch-desc">Computes CRC32 of its own <code style="background:transparent;border:none;color:var(--accent)">.text</code> at runtime. Any patched byte — a breakpoint, a NOP — alters the checksum.</div>
+        </div>
+      </div>
+
+      <div class="sec-divider"><h3>Disassembly Preview</h3></div>
+      <div class="asm-block">
+        <span class="code-label">antidebug — key logic</span>
+        <div><span class="aa">0x1189</span><span class="am">call</span>   <span class="ao">check_ptrace</span>         <span class="ac">; Layer 1</span></div>
+        <div><span class="aa">0x118e</span><span class="am">test</span>   <span class="ao">eax, eax</span></div>
+        <div><span class="aa">0x1190</span><span class="am ah">jnz</span>    <span class="ao">0x11f2</span>               <span class="ac">; → "DETECTED"  ← patch target</span></div>
+        <br>
+        <div><span class="aa">0x11a4</span><span class="am">rdtsc</span>                            <span class="ac">; Layer 2 — t1</span></div>
+        <div><span class="aa">0x11a6</span><span class="am">shl</span>    <span class="ao">rdx, 0x20</span></div>
+        <div><span class="aa">0x11aa</span><span class="am">or</span>     <span class="ao">rax, rdx</span></div>
+        <div><span class="aa">0x11b1</span><span class="am">...busy loop (1000 iters)...</span></div>
+        <div><span class="aa">0x11c8</span><span class="am">rdtsc</span>                            <span class="ac">; t2</span></div>
+        <div><span class="aa">0x11ca</span><span class="am">sub</span>    <span class="ao">rax, [rbp-0x10]</span>      <span class="ac">; delta = t2-t1</span></div>
+        <div><span class="aa">0x11ce</span><span class="am">cmp</span>    <span class="ao">rax, 0x7a120</span>         <span class="ac">; threshold = 500000</span></div>
+        <div><span class="aa">0x11d4</span><span class="am ah">ja</span>     <span class="ao">0x1210</span>               <span class="ac">; → "ANOMALY"   ← patch target</span></div>
+        <br>
+        <div><span class="aa">0x11e0</span><span class="am">call</span>   <span class="ao">compute_crc</span>          <span class="ac">; Layer 3</span></div>
+        <div><span class="aa">0x11e5</span><span class="am">cmp</span>    <span class="ao">eax, [g_expected_crc]</span></div>
+        <div><span class="aa">0x11eb</span><span class="am ah">jne</span>    <span class="ao">0x1230</span>               <span class="ac">; → "TAMPERED"  ← tricky!</span></div>
+        <br>
+        <div><span class="aa">0x11f0</span><span class="am">call</span>   <span class="ao">decode_flag</span>          <span class="ac">; XOR 0xAB → flag</span></div>
+      </div>
+
+      <div class="sec-divider"><h3>Expected Behaviour</h3></div>
+      <div class="terminal-emu">
+        <div class="emu-bar">
+          <div class="emu-dot" style="background:#ff5f56"></div>
+          <div class="emu-dot" style="background:#ffbd2e"></div>
+          <div class="emu-dot" style="background:#27c93f"></div>
+          <div class="emu-title">bash — native vs debugger</div>
+        </div>
+        <div class="emu-body">
+          <span class="eprompt">$ chmod +x antidebug &amp;&amp; ./antidebug</span><br>
+          [*] FlagVault CTF :: Debug Me If You Can<br>
+          [*] Running anti-debug checks...<br><br>
+          [.] Check 1/3  ptrace detection ..... <span class="epass">PASS</span><br>
+          [.] Check 2/3  timing analysis ...... <span class="epass">PASS</span><br>
+          [.] Check 3/3  code integrity ....... <span class="epass">PASS</span><br><br>
+          [+] All checks passed!<br>
+          [+] Flag: <span class="epass">FlagVault{...}</span><br><br>
+          <span class="ecmt">--- Under GDB (no bypass) ---</span><br>
+          <span class="eprompt">$ gdb -q ./antidebug</span><br>
+          (gdb) run<br>
+          [.] Check 1/3  ptrace detection ..... <span class="efail">DETECTED</span><br>
+          [.] Check 2/3  timing analysis ...... <span class="efail">ANOMALY</span><br>
+          [-] Debugger detected. No flag.
+        </div>
+      </div>
+
+      <div class="sec-divider"><h3>Downloads</h3></div>
+      <a class="dl-btn" href="files/antidebug" download="antidebug">
+        <span class="dl-icon">⚙</span>
+        <span><span class="dl-name">antidebug</span><span class="dl-size">ELF 64-bit LSB · Linux x86-64 · ~22 KB · requires chmod +x</span></span>
+        <span class="dl-arrow">→</span>
+      </a>
+      <a class="dl-btn" href="files/antidebug.c" download="antidebug.c" style="border-color:rgba(124,58,237,.4)">
+        <span class="dl-icon">📄</span>
+        <span><span class="dl-name" style="color:var(--accent4)">antidebug.c</span><span class="dl-size">C source — static analysis reference · ~2 KB</span></span>
+        <span class="dl-arrow">→</span>
+      </a>
+
+      <div class="sec-divider"><h3>Bypass Strategy</h3></div>
+      <div class="desc-block">
+        <p><span class="hl">Method A — LD_PRELOAD (recommended):</span> Override <code style="background:transparent;border:none;color:var(--accent)">ptrace()</code> with a stub that returns 0. No binary bytes change → CRC stays valid. Since you're not in a debugger, timing is also fast.</p>
+        <p><span class="hl">Method B — GDB + scripting:</span> Hook the ptrace syscall return, override the rdtsc delta, and force the CRC comparison result. Complex but teaches all three layers deeply.</p>
+        <p><span class="hl">Method C — Binary patch:</span> NOP out the three conditional jumps. <span class="hl2">Warning:</span> NOP bytes alter CRC — you must also update the stored expected CRC value at <code style="background:transparent;border:none;color:var(--accent)">g_expected_crc</code>.</p>
+        <p><span class="hl3">⚑ The flag bytes are XOR-obfuscated — strings/xxd won't reveal it. You must run the binary with all checks passing.</span></p>
+      </div>
+
+      <div class="sec-divider"><h3>Hints</h3></div>
+      <div class="hints-container">
+        <div class="hint-item" id="h1">
+          <button class="hint-toggle" onclick="revealHint('h1')">
+            <span class="hint-num">HINT 01</span>
+            Bypass ptrace without touching the binary bytes
+            <span class="hint-cost">-50 pts</span>
+          </button>
+          <div class="hint-content">
+            Write a one-liner ptrace hook and preload it:<br>
+            <code style="background:transparent;border:none;color:var(--accent)">echo 'long ptrace(){return 0;}' | gcc -shared -fPIC -xc -o /tmp/nop.so -</code><br>
+            <code style="background:transparent;border:none;color:var(--accent)">LD_PRELOAD=/tmp/nop.so ./antidebug</code><br>
+            This defeats Layer 1. Since no bytes changed, CRC (Layer 3) stays valid. Running natively means timing (Layer 2) also passes.
+          </div>
+        </div>
+        <div class="hint-item" id="h2">
+          <button class="hint-toggle" onclick="revealHint('h2')">
+            <span class="hint-num">HINT 02</span>
+            Defeating the RDTSC check in GDB
+            <span class="hint-cost">-75 pts</span>
+          </button>
+          <div class="hint-content">
+            After the second <code style="background:transparent;border:none">rdtsc</code>, set <code style="background:transparent;border:none">$rax</code> to the value stored in <code style="background:transparent;border:none">[rbp-0x10]</code> so delta = 0:<br>
+            <code style="background:transparent;border:none;color:var(--accent)">b *0x11c8  # break at second rdtsc</code><br>
+            <code style="background:transparent;border:none;color:var(--accent)">commands</code><br>
+            <code style="background:transparent;border:none;color:var(--accent)">  set $rax = *(unsigned long long*)($rbp-0x10)</code><br>
+            <code style="background:transparent;border:none;color:var(--accent)">  continue</code><br>
+            <code style="background:transparent;border:none;color:var(--accent)">end</code>
+          </div>
+        </div>
+        <div class="hint-item" id="h3">
+          <button class="hint-toggle" onclick="revealHint('h3')">
+            <span class="hint-num">HINT 03</span>
+            The CRC check — why patching is dangerous
+            <span class="hint-cost">-100 pts</span>
+          </button>
+          <div class="hint-content">
+            The CRC covers the first 64 bytes of <code style="background:transparent;border:none">check_ptrace</code>. Setting a software breakpoint (INT3 = 0xCC) at that address overwrites a byte, changing the CRC.<br><br>
+            Safe options:<br>
+            1. <strong style="color:var(--accent)">LD_PRELOAD</strong> — never touches binary bytes<br>
+            2. Hardware breakpoints in GDB: <code style="background:transparent;border:none;color:var(--accent)">hb *0x1189</code> — uses DR registers, leaves no byte imprint
+          </div>
+        </div>
+        <div class="hint-item" id="h4">
+          <button class="hint-toggle" onclick="revealHint('h4')">
+            <span class="hint-num">HINT 04</span>
+            Complete cleanest single-command solution
+            <span class="hint-cost">-150 pts</span>
+          </button>
+          <div class="hint-content">
+            All three layers bypassed in two commands:<br><br>
+            <code style="background:transparent;border:none;color:var(--accent)">printf '#include &lt;stdarg.h&gt;\nlong ptrace(int r,...){return 0;}' \</code><br>
+            <code style="background:transparent;border:none;color:var(--accent)">  | gcc -shared -fPIC -xc -o /tmp/np.so -</code><br><br>
+            <code style="background:transparent;border:none;color:var(--accent)">LD_PRELOAD=/tmp/np.so ./antidebug</code><br><br>
+            Layer 1 (ptrace) → hooked to 0. Layer 2 (timing) → fast native exec. Layer 3 (CRC) → bytes untouched. Flag printed.
+          </div>
+        </div>
+      </div>
+
+      <div class="flag-format">
+        <span>⚑</span>
+        <span>Flag format: <strong>FlagVault{your_flag_here}</strong></span>
+      </div>
+
+      <div class="submit-section">
+        <div class="submit-title">Submit Your Flag</div>
+        <p class="submit-sub">Bypass all three protection layers and copy the full flag the binary prints.</p>
+        <div class="flag-input-wrap">
+          <span class="prefix">FlagVault{</span>
+          <input class="form-control" id="flagInput" type="text" placeholder="your_flag_here}" autocomplete="off" spellcheck="false"/>
+        </div>
+        <div class="flag-submit-row">
+          <button class="btn btn-primary" onclick="submitFlag()">⚑ &nbsp;Submit Flag</button>
+          <button class="btn btn-danger"  onclick="clearFlag()">✕ &nbsp;Clear</button>
+        </div>
+        <div class="solved-banner" id="solvedBanner">
+          <span class="sb-icon">🏆</span>
+          <div>
+            <div style="font-weight:bold;margin-bottom:.2rem;color:var(--accent)">CORRECT — All Three Layers Defeated!</div>
+            <div style="font-size:.72rem;color:var(--text-dim)">ptrace, timing, and CRC checks neutralized. Impressive reverse engineering.</div>
+          </div>
+          <span class="sb-pts">+500 pts</span>
+        </div>
+        <div class="submit-result" id="wrongBanner">
+          ✕ &nbsp;Incorrect flag. Make sure all three checks show PASS and copy the full output.
+        </div>
+      </div>
+
+    </div><!-- /main -->
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+
+      <div class="side-card">
+        <div class="side-card-title">// Challenge Info</div>
+        <div class="meta-row"><span class="meta-key">Category</span><span class="meta-val"><span class="tag tag-purple">Reverse Eng.</span></span></div>
+        <div class="meta-row"><span class="meta-key">Difficulty</span><span class="meta-val"><span class="tag tag-red">Hard</span></span></div>
+        <div class="meta-row"><span class="meta-key">Points</span><span class="meta-val amber" style="color:var(--accent3)">500 pts</span></div>
+        <div class="meta-row"><span class="meta-key">Platform</span><span class="meta-val">Linux x86-64</span></div>
+        <div class="meta-row"><span class="meta-key">Binary</span><span class="meta-val"><code style="font-size:.7rem">ELF 64-bit</code></span></div>
+        <div class="meta-row"><span class="meta-key">Author</span><span class="meta-val green">FlagVault Team</span></div>
+        <div class="meta-row"><span class="meta-key">Solves</span><span class="meta-val green" id="solveCount">23</span></div>
+        <div class="solve-bar-wrap">
+          <div class="solve-bar-label"><span>Solve Rate</span><span id="solveRate">23 / 120</span></div>
+          <div class="solve-bar"><div class="solve-bar-fill" id="solveFill"></div></div>
+        </div>
+      </div>
+
+      <div class="side-card">
+        <div class="side-card-title">// Required Tools</div>
+        <div style="display:flex;flex-direction:column;gap:.6rem">
+          <div class="tool-card" style="--tool-color:var(--accent2)">
+            <span class="tool-icon">🐛</span>
+            <div class="tool-name">GDB + pwndbg</div>
+            <span class="tool-tag">debugger</span>
+            <p class="tool-desc">Primary analysis tool. pwndbg gives nicer disassembly and register views.</p>
+          </div>
+          <div class="tool-card" style="--tool-color:var(--accent3)">
+            <span class="tool-icon">🔬</span>
+            <div class="tool-name">Ghidra / IDA</div>
+            <span class="tool-tag">disassembler</span>
+            <p class="tool-desc">Static analysis to understand control flow before dynamic analysis.</p>
+          </div>
+          <div class="tool-card" style="--tool-color:var(--accent)">
+            <span class="tool-icon">🪝</span>
+            <div class="tool-name">LD_PRELOAD</div>
+            <span class="tool-tag">hook</span>
+            <p class="tool-desc">Override libc symbols at runtime without touching the binary bytes.</p>
+          </div>
+          <div class="tool-card" style="--tool-color:var(--accent4)">
+            <span class="tool-icon">📡</span>
+            <div class="tool-name">strace / ltrace</div>
+            <span class="tool-tag">trace</span>
+            <p class="tool-desc">Observe syscalls and library calls to map the anti-debug logic.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="side-card">
+        <div class="side-card-title">// Recent Solvers</div>
+        <div id="solverList"></div>
+      </div>
+
+      <div class="side-card" style="border-left:3px solid var(--accent3)">
+        <div class="side-card-title">// Platform Note</div>
+        <p style="font-family:var(--font-mono);font-size:.72rem;color:var(--text-dim);line-height:1.7">
+          Requires <strong style="color:var(--accent)">Linux x86-64</strong>.<br><br>
+          On Windows: use WSL2 or Docker:<br>
+          <code style="display:block;margin-top:.4rem;font-size:.68rem;word-break:break-all">docker run -it --rm -v ${PWD}:/ctf ubuntu bash</code><br>
+          Then <code style="font-size:.68rem">chmod +x /ctf/antidebug</code>
+        </p>
+      </div>
+
+      <div class="side-card" style="border-left:3px solid var(--accent2)">
+        <div class="side-card-title">// Flag Format</div>
+        <code style="display:block;font-size:.78rem;word-break:break-all">FlagVault{your_flag_here}</code>
+        <p style="font-family:var(--font-mono);font-size:.68rem;color:var(--text-dim);margin-top:.6rem">Copy the exact output after all three checks show PASS.</p>
+      </div>
+
+    </aside>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="footer-brand">FLAG<span>VAULT</span> CTF</div>
+  <div class="footer-copy">Debug Me If You Can &nbsp;·&nbsp; Reverse Engineering &nbsp;·&nbsp; 500 pts</div>
+</footer>
+
+<script>
+/* ═══════════════════════════════════════════════
+   FlagVault CTF — Debug Me If You Can
+   Flag: FlagVault{4nt1_d3bug_byp4ss_m4st3r}
+   JS stores it XOR'd with 0x3C — verified correct
+═══════════════════════════════════════════════ */
+
+// FlagVault{4nt1_d3bug_byp4ss_m4st3r} XOR 0x3C — verified
+const _fe=[122,80,93,91,106,93,73,80,72,71,8,82,72,13,99,88,15,94,73,91,99,94,69,76,8,79,79,99,81,8,79,72,15,78,65];
+function _f(){return _fe.map(b=>String.fromCharCode(b^0x3c)).join('');}
+
+function revealHint(id){
+  const el=document.getElementById(id);
+  if(el)el.classList.toggle('revealed');
+}
+
+function submitFlag(){
+  const inp=document.getElementById('flagInput');
+  const ok=document.getElementById('solvedBanner');
+  const bad=document.getElementById('wrongBanner');
+  if(!inp)return;
+  let raw=inp.value.trim();
+  let sub=raw.startsWith('FlagVault{')?raw:raw.startsWith('{')?'FlagVault'+raw:'FlagVault{'+raw;
+  ok.classList.remove('show');
+  bad.style.display='none';bad.className='submit-result';
+  if(sub===_f()){
+    ok.classList.add('show');
+    inp.style.borderColor='var(--accent)';
+    inp.style.boxShadow='0 0 0 2px rgba(0,232,200,.2)';
+    document.body.style.transition='background .15s';
+    document.body.style.background='#001a10';
+    setTimeout(()=>{document.body.style.background='';},300);
+    _inc();
+  }else{
+    bad.style.display='block';bad.classList.add('incorrect');
+    inp.style.borderColor='var(--accent2)';
+    inp.style.boxShadow='0 0 0 2px rgba(255,45,107,.2)';
+    inp.classList.add('shake');
+    setTimeout(()=>inp.classList.remove('shake'),500);
+  }
+}
+
+function clearFlag(){
+  const inp=document.getElementById('flagInput');
+  const ok=document.getElementById('solvedBanner');
+  const bad=document.getElementById('wrongBanner');
+  if(inp){inp.value='';inp.style.borderColor='';inp.style.boxShadow='';}
+  if(ok)ok.classList.remove('show');
+  if(bad){bad.style.display='none';bad.className='submit-result';}
+}
+
+function _inc(){
+  const el=document.getElementById('solveCount');
+  const r=document.getElementById('solveRate');
+  const f=document.getElementById('solveFill');
+  if(!el)return;
+  const n=parseInt(el.textContent,10)+1;
+  el.textContent=n;
+  if(r)r.textContent=n+' / 120';
+  if(f)f.style.width=((n/120)*100).toFixed(1)+'%';
+}
+
+document.addEventListener('DOMContentLoaded',()=>{
+  const inp=document.getElementById('flagInput');
+  if(inp){
+    inp.addEventListener('keydown',e=>{if(e.key==='Enter')submitFlag();});
+    inp.addEventListener('input',()=>{inp.style.borderColor='';inp.style.boxShadow='';});
+  }
+  setTimeout(()=>{const f=document.getElementById('solveFill');if(f)f.style.width='19%';},500);
+  const sl=document.getElementById('solverList');
+  if(sl)sl.innerHTML=[
+    {n:'binpwn3r',t:'1h ago'},{n:'r3v_g0d',t:'3h ago'},
+    {n:'elf_slayer',t:'5h ago'},{n:'n0_br34k',t:'7h ago'},
+    {n:'ptrace_kill',t:'9h ago'}
+  ].map(s=>`<div style="display:flex;align-items:center;justify-content:space-between;font-family:var(--font-mono);font-size:.72rem;padding:.4rem 0;border-bottom:1px solid rgba(22,64,96,.4)"><span style="color:var(--text-hi)">🔓 ${s.n}</span><span style="color:var(--text-dim)">${s.t}</span></div>`).join('');
+});
+</script>
+</body>
+</html>
