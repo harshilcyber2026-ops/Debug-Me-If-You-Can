@@ -197,13 +197,6 @@ code,.mono{font-family:var(--font-mono);background:rgba(0,232,200,0.06);border:1
   <a class="nav-brand" href="#">
     <span class="bracket">[</span><span class="brand-flag">⚑</span>FLAG<span style="color:var(--accent)">VAULT</span><span class="bracket">]</span>
   </a>
-  <ul class="nav-links">
-    <li><a href="#">Home</a></li>
-    <li><a href="#" class="active">Challenges</a></li>
-    <li><a href="#">Scoreboard</a></li>
-    <li><a href="#">Tools</a></li>
-    <li><a href="#">Rules</a></li>
-  </ul>
   <div class="nav-status"><span class="status-dot"></span><span>CTF LIVE</span></div>
 </nav>
 
@@ -326,88 +319,13 @@ code,.mono{font-family:var(--font-mono);background:rgba(0,232,200,0.06);border:1
         <p><span class="hl3">⚑ The flag bytes are XOR-obfuscated — strings/xxd won't reveal it. You must run the binary with all checks passing.</span></p>
       </div>
 
-      <div class="sec-divider"><h3>Hints</h3></div>
-      <div class="hints-container">
-        <div class="hint-item" id="h1">
-          <button class="hint-toggle" onclick="revealHint('h1')">
-            <span class="hint-num">HINT 01</span>
-            Bypass ptrace without touching the binary bytes
-            <span class="hint-cost">-50 pts</span>
-          </button>
-          <div class="hint-content">
-            Write a one-liner ptrace hook and preload it:<br>
-            <code style="background:transparent;border:none;color:var(--accent)">echo 'long ptrace(){return 0;}' | gcc -shared -fPIC -xc -o /tmp/nop.so -</code><br>
-            <code style="background:transparent;border:none;color:var(--accent)">LD_PRELOAD=/tmp/nop.so ./antidebug</code><br>
-            This defeats Layer 1. Since no bytes changed, CRC (Layer 3) stays valid. Running natively means timing (Layer 2) also passes.
-          </div>
-        </div>
-        <div class="hint-item" id="h2">
-          <button class="hint-toggle" onclick="revealHint('h2')">
-            <span class="hint-num">HINT 02</span>
-            Defeating the RDTSC check in GDB
-            <span class="hint-cost">-75 pts</span>
-          </button>
-          <div class="hint-content">
-            After the second <code style="background:transparent;border:none">rdtsc</code>, set <code style="background:transparent;border:none">$rax</code> to the value stored in <code style="background:transparent;border:none">[rbp-0x10]</code> so delta = 0:<br>
-            <code style="background:transparent;border:none;color:var(--accent)">b *0x11c8  # break at second rdtsc</code><br>
-            <code style="background:transparent;border:none;color:var(--accent)">commands</code><br>
-            <code style="background:transparent;border:none;color:var(--accent)">  set $rax = *(unsigned long long*)($rbp-0x10)</code><br>
-            <code style="background:transparent;border:none;color:var(--accent)">  continue</code><br>
-            <code style="background:transparent;border:none;color:var(--accent)">end</code>
-          </div>
-        </div>
-        <div class="hint-item" id="h3">
-          <button class="hint-toggle" onclick="revealHint('h3')">
-            <span class="hint-num">HINT 03</span>
-            The CRC check — why patching is dangerous
-            <span class="hint-cost">-100 pts</span>
-          </button>
-          <div class="hint-content">
-            The CRC covers the first 64 bytes of <code style="background:transparent;border:none">check_ptrace</code>. Setting a software breakpoint (INT3 = 0xCC) at that address overwrites a byte, changing the CRC.<br><br>
-            Safe options:<br>
-            1. <strong style="color:var(--accent)">LD_PRELOAD</strong> — never touches binary bytes<br>
-            2. Hardware breakpoints in GDB: <code style="background:transparent;border:none;color:var(--accent)">hb *0x1189</code> — uses DR registers, leaves no byte imprint
-          </div>
-        </div>
-        <div class="hint-item" id="h4">
-          <button class="hint-toggle" onclick="revealHint('h4')">
-            <span class="hint-num">HINT 04</span>
-            Complete cleanest single-command solution
-            <span class="hint-cost">-150 pts</span>
-          </button>
-          <div class="hint-content">
-            All three layers bypassed in two commands:<br><br>
-            <code style="background:transparent;border:none;color:var(--accent)">printf '#include &lt;stdarg.h&gt;\nlong ptrace(int r,...){return 0;}' \</code><br>
-            <code style="background:transparent;border:none;color:var(--accent)">  | gcc -shared -fPIC -xc -o /tmp/np.so -</code><br><br>
-            <code style="background:transparent;border:none;color:var(--accent)">LD_PRELOAD=/tmp/np.so ./antidebug</code><br><br>
-            Layer 1 (ptrace) → hooked to 0. Layer 2 (timing) → fast native exec. Layer 3 (CRC) → bytes untouched. Flag printed.
-          </div>
-        </div>
-      </div>
-
-      <div class="flag-format">
-        <span>⚑</span>
-        <span>Flag format: <strong>FlagVault{your_flag_here}</strong></span>
-      </div>
-
-      <div class="submit-section">
-        <div class="submit-title">Submit Your Flag</div>
-        <p class="submit-sub">Bypass all three protection layers and copy the full flag the binary prints.</p>
-        <div class="flag-input-wrap">
-          <span class="prefix">FlagVault{</span>
-          <input class="form-control" id="flagInput" type="text" placeholder="your_flag_here}" autocomplete="off" spellcheck="false"/>
-        </div>
-        <div class="flag-submit-row">
-          <button class="btn btn-primary" onclick="submitFlag()">⚑ &nbsp;Submit Flag</button>
-          <button class="btn btn-danger"  onclick="clearFlag()">✕ &nbsp;Clear</button>
-        </div>
+     
         <div class="solved-banner" id="solvedBanner">
           <span class="sb-icon">🏆</span>
           <div>
             <div style="font-weight:bold;margin-bottom:.2rem;color:var(--accent)">CORRECT — All Three Layers Defeated!</div>
             <div style="font-size:.72rem;color:var(--text-dim)">ptrace, timing, and CRC checks neutralized. Impressive reverse engineering.</div>
           </div>
-          <span class="sb-pts">+500 pts</span>
         </div>
         <div class="submit-result" id="wrongBanner">
           ✕ &nbsp;Incorrect flag. Make sure all three checks show PASS and copy the full output.
@@ -423,7 +341,6 @@ code,.mono{font-family:var(--font-mono);background:rgba(0,232,200,0.06);border:1
         <div class="side-card-title">// Challenge Info</div>
         <div class="meta-row"><span class="meta-key">Category</span><span class="meta-val"><span class="tag tag-purple">Reverse Eng.</span></span></div>
         <div class="meta-row"><span class="meta-key">Difficulty</span><span class="meta-val"><span class="tag tag-red">Hard</span></span></div>
-        <div class="meta-row"><span class="meta-key">Points</span><span class="meta-val amber" style="color:var(--accent3)">500 pts</span></div>
         <div class="meta-row"><span class="meta-key">Platform</span><span class="meta-val">Linux x86-64</span></div>
         <div class="meta-row"><span class="meta-key">Binary</span><span class="meta-val"><code style="font-size:.7rem">ELF 64-bit</code></span></div>
         <div class="meta-row"><span class="meta-key">Author</span><span class="meta-val green">FlagVault Team</span></div>
