@@ -348,35 +348,6 @@ code,.mono{font-family:var(--font-mono);background:rgba(0,232,200,0.06);border:1
           <div class="solve-bar"><div class="solve-bar-fill" id="solveFill"></div></div>
         </div>
       </div>
-
-      <div class="side-card">
-        <div class="side-card-title">// Required Tools</div>
-        <div style="display:flex;flex-direction:column;gap:.6rem">
-          <div class="tool-card" style="--tool-color:var(--accent2)">
-            <span class="tool-icon">🐛</span>
-            <div class="tool-name">GDB + pwndbg</div>
-            <span class="tool-tag">debugger</span>
-            <p class="tool-desc">Primary analysis tool. pwndbg gives nicer disassembly and register views.</p>
-          </div>
-          <div class="tool-card" style="--tool-color:var(--accent3)">
-            <span class="tool-icon">🔬</span>
-            <div class="tool-name">Ghidra / IDA</div>
-            <span class="tool-tag">disassembler</span>
-            <p class="tool-desc">Static analysis to understand control flow before dynamic analysis.</p>
-          </div>
-          <div class="tool-card" style="--tool-color:var(--accent)">
-            <span class="tool-icon">🪝</span>
-            <div class="tool-name">LD_PRELOAD</div>
-            <span class="tool-tag">hook</span>
-            <p class="tool-desc">Override libc symbols at runtime without touching the binary bytes.</p>
-          </div>
-          <div class="tool-card" style="--tool-color:var(--accent4)">
-            <span class="tool-icon">📡</span>
-            <div class="tool-name">strace / ltrace</div>
-            <span class="tool-tag">trace</span>
-            <p class="tool-desc">Observe syscalls and library calls to map the anti-debug logic.</p>
-          </div>
-        </div>
       </div>
     </aside>
   </div>
